@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dark_bg">#1A1A2E</color>
+    <color name="bottom_icon_bg">#152D5A</color>
+    <color name="focus_border">#448AFF</color>
+    <color name="focus_glow">#22448AFF</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_light_blue">#4FC3F7</color>
+    <color name="dialog_bg">#CC000000</color>
+</resources>

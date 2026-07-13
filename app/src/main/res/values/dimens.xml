@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="icon_card_radius">14dp</dimen>
+    <dimen name="bottom_bar_height">92dp</dimen>
+    <dimen name="bottom_icon_size">44dp</dimen>
+    <dimen name="bottom_icon_radius">8dp</dimen>
+    <dimen name="top_bar_padding">24dp</dimen>
+    <dimen name="bottom_text_size">13sp</dimen>
+    <dimen name="dialog_title_size">20sp</dimen>
+    <dimen name="dialog_app_name_size">11sp</dimen>
+    <dimen name="dialog_icon_size">52dp</dimen>
+</resources>
