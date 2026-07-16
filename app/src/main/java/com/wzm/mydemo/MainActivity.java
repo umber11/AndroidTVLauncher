@@ -1,6 +1,9 @@
 package com.wzm.mydemo;
 
+import android.app.AppOpsManager;
 import android.app.Dialog;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -8,6 +11,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Process;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -30,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 /**
@@ -37,11 +42,12 @@ import java.util.TimeZone;
  */
 public class MainActivity extends AppCompatActivity {
 
-    private TextView tvTime;//显示时间
-    private TextView tvDate;//显示日期
-    private List<AppInfo> installedApps;//存储已安装应用列表
-    private Thread clockThread;//时钟更新线程
-    private static final TimeZone CHINA_TZ = TimeZone.getTimeZone("GMT+8");//定义中国时区常量（东八区）
+    private TextView tvTime;
+    private TextView tvDate;
+    private List<AppInfo> installedApps;
+    private Thread clockThread;
+    private static final TimeZone CHINA_TZ = TimeZone.getTimeZone("GMT+8");
+    private AppIconAdapter appIconAdapter;
 
     //启动时钟更新线程
     private void startClock() {
@@ -119,6 +125,11 @@ public class MainActivity extends AppCompatActivity {
         setupAppIcons();
         setupBottomBar();
         loadInstalledApps();
+
+        if (!hasUsagePermission()) {
+            Toast.makeText(this, "请授权使用情况访问权限以显示常用应用", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+        }
     }
 
     //进入沉浸式全屏模式
@@ -138,10 +149,66 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView rv = findViewById(R.id.rv_app_icons);
         rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        AppIconAdapter adapter = new AppIconAdapter();
-        rv.setAdapter(adapter);
+        appIconAdapter = new AppIconAdapter();
+        rv.setAdapter(appIconAdapter);
 
-        adapter.setOnIconClickListener((position, name) -> showAllAppsDialog());
+        appIconAdapter.setOnIconClickListener((position, name) -> showAllAppsDialog());
+
+        if (hasUsagePermission()) {
+            loadFrequentApps();
+        } else {
+            loadFrequentFallback();
+        }
+    }
+
+    private boolean hasUsagePermission() {
+        AppOpsManager appOps = (AppOpsManager) getSystemService(APP_OPS_SERVICE);
+        int mode = appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                Process.myUid(), getPackageName());
+        return mode == AppOpsManager.MODE_ALLOWED;
+    }
+
+    private void loadFrequentApps() {
+        UsageStatsManager usm = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
+        long end = System.currentTimeMillis();
+        long start = end - 1000L * 60 * 60 * 24 * 7;
+
+        Map<String, UsageStats> statsMap = usm.queryAndAggregateUsageStats(start, end);
+        List<UsageStats> stats = new ArrayList<>(statsMap.values());
+        stats.sort((a, b) -> Long.compare(b.getTotalTimeInForeground(), a.getTotalTimeInForeground()));
+
+        PackageManager pm = getPackageManager();
+        String myPackage = getPackageName();
+        List<AppInfo> frequentApps = new ArrayList<>();
+
+        for (UsageStats stat : stats) {
+            if (frequentApps.size() >= 4) break;
+            String pkg = stat.getPackageName();
+            if (pkg.equals(myPackage)) continue;
+            try {
+                ApplicationInfo ai = pm.getApplicationInfo(pkg, 0);
+                AppInfo info = new AppInfo();
+                info.appName = ai.loadLabel(pm).toString();
+                info.packageName = pkg;
+                info.icon = ai.loadIcon(pm);
+                frequentApps.add(info);
+            } catch (Exception ignored) {
+            }
+        }
+
+        appIconAdapter.setData(frequentApps);
+    }
+
+    private void loadFrequentFallback() {
+        if (installedApps == null || installedApps.isEmpty()) {
+            loadInstalledApps();
+        }
+        List<AppInfo> top4 = new ArrayList<>();
+        for (int i = 0; i < Math.min(4, installedApps.size()); i++) {
+            top4.add(installedApps.get(i));
+        }
+        appIconAdapter.setData(top4);
     }
 
     //设置底部导航栏
@@ -273,6 +340,9 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         enterFullScreen();
         startClock();
+        if (hasUsagePermission()) {
+            loadFrequentApps();
+        }
     }
 
     @Override
