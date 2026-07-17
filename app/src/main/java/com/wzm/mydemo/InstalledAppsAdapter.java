@@ -1,7 +1,6 @@
 package com.wzm.mydemo;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,12 +65,6 @@ public class InstalledAppsAdapter extends BaseAdapter {
             v.animate().cancel();
             float s = hasFocus ? 1.08f : 1.0f;
             v.animate().scaleX(s).scaleY(s).setDuration(150).start();
-        });
-
-        // 点击启动对应应用
-        convertView.setOnClickListener(v -> {
-            Intent intent = pm.getLaunchIntentForPackage(app.packageName);
-            if (intent != null) context.startActivity(intent);
         });
 
         return convertView;

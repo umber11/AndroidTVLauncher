@@ -78,6 +78,10 @@ public class AppIconAdapter extends RecyclerView.Adapter<AppIconAdapter.VH> {
         holder.itemView.setNextFocusDownId(R.id.bottom_bar);
     }
 
+    public AppInfo getItem(int position) {
+        return apps.get(position);
+    }
+
     @Override
     public int getItemCount() {
         return apps.size();

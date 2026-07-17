@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -152,7 +153,15 @@ public class MainActivity extends AppCompatActivity {
         appIconAdapter = new AppIconAdapter();
         rv.setAdapter(appIconAdapter);
 
-        appIconAdapter.setOnIconClickListener((position, name) -> showAllAppsDialog());
+        appIconAdapter.setOnIconClickListener((position, name) -> {
+            AppInfo app = appIconAdapter.getItem(position);
+            if (app != null) {
+                Intent intent = getPackageManager().getLaunchIntentForPackage(app.packageName);
+                if (intent != null) {
+                    startActivity(intent);
+                }
+            }
+        });
 
         if (hasUsagePermission()) {
             loadFrequentApps();
@@ -176,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
         Map<String, UsageStats> statsMap = usm.queryAndAggregateUsageStats(start, end);
         List<UsageStats> stats = new ArrayList<>(statsMap.values());
-        stats.sort((a, b) -> Long.compare(b.getTotalTimeInForeground(), a.getTotalTimeInForeground()));
+        Collections.sort(stats, (a, b) -> Long.compare(b.getTotalTimeInForeground(), a.getTotalTimeInForeground()));
 
         PackageManager pm = getPackageManager();
         String myPackage = getPackageName();
@@ -186,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
             if (frequentApps.size() >= 4) break;
             String pkg = stat.getPackageName();
             if (pkg.equals(myPackage)) continue;
+            if (pm.getLaunchIntentForPackage(pkg) == null) continue;
             try {
                 ApplicationInfo ai = pm.getApplicationInfo(pkg, 0);
                 AppInfo info = new AppInfo();

@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:gravity="center"
     android:layout_marginEnd="28dp"
-    android:background="@drawable/bg_focus_icon"
     android:focusable="true"
     android:focusableInTouchMode="true">
 
@@ -15,6 +14,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
+        android:background="@drawable/bg_focus_icon"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="12dp"
