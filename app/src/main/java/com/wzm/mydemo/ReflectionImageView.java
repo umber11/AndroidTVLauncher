@@ -49,8 +49,12 @@ public class ReflectionImageView extends View {
 
     // 将源 View 绘制到一个 Bitmap 中
     private void captureView(View view) {
+        if (mSourceBitmap != null) {
+            mSourceBitmap.recycle();
+            mSourceBitmap = null;
+        }
         mSourceBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(mSourceBitmap);// 创建画布c绑定到位图
+        Canvas c = new Canvas(mSourceBitmap);
         view.draw(c);
         requestLayout();
         invalidate();
@@ -98,5 +102,14 @@ public class ReflectionImageView extends View {
     // 工具方法：dp 转像素
     private int dp(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mSourceBitmap != null) {
+            mSourceBitmap.recycle();
+            mSourceBitmap = null;
+        }
     }
 }

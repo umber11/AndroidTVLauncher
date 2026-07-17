@@ -170,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // 检查是否已授予使用情况访问权限
     private boolean hasUsagePermission() {
         AppOpsManager appOps = (AppOpsManager) getSystemService(APP_OPS_SERVICE);
         int mode = appOps.checkOpNoThrow(
@@ -178,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
         return mode == AppOpsManager.MODE_ALLOWED;
     }
 
+    // 根据最近7天使用频率获取常用应用，过滤掉系统组件和无法启动的应用
     private void loadFrequentApps() {
         UsageStatsManager usm = (UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
         long end = System.currentTimeMillis();
@@ -210,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
         appIconAdapter.setData(frequentApps);
     }
 
+    // 无使用权限时的降级方案：取已安装应用列表的前4个作为快捷图标
     private void loadFrequentFallback() {
         if (installedApps == null || installedApps.isEmpty()) {
             loadInstalledApps();
@@ -328,8 +331,8 @@ public class MainActivity extends AppCompatActivity {
 
         gv.setOnItemClickListener((parent, v, position, id) -> {
             AppInfo app = installedApps.get(position);
-            dialog.dismiss();
             Intent intent = getPackageManager().getLaunchIntentForPackage(app.packageName);
+            dialog.dismiss();
             if (intent != null) startActivity(intent);
         });
 
