@@ -6,8 +6,6 @@
     android:gravity="center"
     android:padding="8dp"
     android:background="@drawable/bg_dialog_item"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
     android:clipChildren="false"
     android:clipToPadding="false">
 
